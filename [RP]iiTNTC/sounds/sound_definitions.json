@@ -1,0 +1,26 @@
+{
+    "vine_boom": {
+        "category": "ui",
+        "sounds": ["sounds/meme/vine_boom"]
+    },
+    "danger_alarm": {
+        "category": "ui",
+        "sounds": ["sounds/meme/danger_alarm"]
+    },
+    "cat_laughing" : {
+        "category": "ui",
+        "sounds": ["sounds/meme/cat_laughing"]
+    },
+    "prowler": {
+        "category": "ui",
+        "sounds": ["sounds/meme/prowler"]
+    },
+    "kururin": {
+        "category": "ui",
+        "sounds": ["sounds/meme/kururin"]
+    },
+    "wait_wait_wait": {
+        "category": "ui",
+        "sounds": ["sounds/meme/wait_wait_wait"]
+    }
+}
