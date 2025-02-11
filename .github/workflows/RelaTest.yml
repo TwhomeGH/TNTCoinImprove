@@ -1,12 +1,14 @@
 name: 自動打包並上傳
 
-permissions:
-  contents: write
 on:
   push:
     branches:
       - main
 
+
+permissions:
+  contents: write
+  
 jobs:
   build:
     runs-on: ubuntu-latest
