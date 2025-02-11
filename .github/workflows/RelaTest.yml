@@ -20,7 +20,7 @@ jobs:
       - name: 安裝 Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'
 
       - name: 安裝必要的 npm 資產
         run: npm install
