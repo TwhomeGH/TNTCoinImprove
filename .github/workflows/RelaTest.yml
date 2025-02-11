@@ -1,0 +1,33 @@
+name: 自動打包並上傳
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 克隆仓库
+        uses: actions/checkout@v2
+
+      - name: 安裝 Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: 安裝必要的 npm 資產
+        run: npm install
+
+      - name: 壓縮兩個資料夾
+        run: |
+          mkdir output
+          zip -r output/TNTCoinImprove.mcaddon [BP]iiTNTC [RP]iiTNTC
+
+      - name: 上傳到 GitHub Releases
+        uses: softprops/action-gh-release@v1
+        with:
+          files: output/TNTCoinImprove.mcaddon
+          draft: true
