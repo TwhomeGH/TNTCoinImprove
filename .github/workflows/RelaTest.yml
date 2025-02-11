@@ -27,6 +27,8 @@ jobs:
           zip -r output/TNTCoinImprove.mcaddon [BP]iiTNTC [RP]iiTNTC
 
       - name: 上傳到 GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: softprops/action-gh-release@v1
         with:
           files: output/TNTCoinImprove.mcaddon
