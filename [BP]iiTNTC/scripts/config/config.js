@@ -1,3 +1,4 @@
+//測試用
 /**
  * The item that will be used to open the TNT Coin GUI.
  */
