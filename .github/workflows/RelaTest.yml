@@ -20,28 +20,28 @@ jobs:
       - name: 安裝 Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '14'
 
       - name: 安裝必要的 npm 資產
-        run: npm install
-
-      - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
-
-      - name: 生產日誌
-        run: npx semantic-release changelog
+        run: npm install
         
       - name: 壓縮兩個資料夾
         run: |
           mkdir output
           zip -r output/TNTCoinImprove.mcaddon [BP]iiTNTC [RP]iiTNTC
-
+          zip -r output/TNTCoinImproveBP.mcpack [BP]iiTNTC
+          zip -r output/TNTCoinImproveRP.mcpack [RP]iiTNTC
+          
       - name: 上傳到 GitHub Releases
         
         uses: softprops/action-gh-release@v1
         with:
-          files: output/TNTCoinImprove.mcaddon
+          files: |
+            output/TNTCoinImprove.mcaddon
+            output/TNTCoinImproveBP.mcpack
+            output/TNTCoinImproveRP.mcpack
+          
           draft: true
