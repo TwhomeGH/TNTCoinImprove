@@ -26,6 +26,9 @@ jobs:
         run: npm install
 
       - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
 
       - name: 壓縮兩個資料夾
@@ -34,9 +37,7 @@ jobs:
           zip -r output/TNTCoinImprove.mcaddon [BP]iiTNTC [RP]iiTNTC
 
       - name: 上傳到 GitHub Releases
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        
         uses: softprops/action-gh-release@v1
         with:
           files: output/TNTCoinImprove.mcaddon
