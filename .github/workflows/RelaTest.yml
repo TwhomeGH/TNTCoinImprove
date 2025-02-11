@@ -31,6 +31,9 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
 
+      - name: 生產日誌
+        run: npx semantic-release changelog
+        
       - name: 壓縮兩個資料夾
         run: |
           mkdir output
