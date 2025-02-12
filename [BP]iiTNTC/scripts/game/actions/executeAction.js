@@ -23,7 +23,13 @@ export function executeAction(game, action) {
             game.structure.clearFilledBlocks();
             break;
         case 'Fill':
-            game.structure.fill();
+            if(action.fillOptions.fillStop){
+                game.structure.fillStop()
+                game.player.sendMessage("[Fill]Stop Fill Block Work")
+            }else{
+             game.structure.fill();
+             game.player.sendMessage("[Fill]Start Fill Block Work")
+            }
             break;
         case 'Play Sound':
             game.feedback.playSound(action.playSound);
@@ -59,5 +65,44 @@ export function executeAction(game, action) {
             }
             
             break;
+            
+        case "RangeSet":
+            let CopyStructureSet={ ...game.structure.structureProperties }
+            let limitHeight = CopyStructureSet.limitHeight
+            let limitWidth = CopyStructureSet.limitWidth
+            
+            if(action.rangeOptions.changeHeight){
+                let HeightRange=CopyStructureSet.height + action.rangeOptions.range
+                
+                if(HeightRange > limitHeight ){
+                    game.player.sendMessage(`兄弟擴建太高了 限制最大高度${limitHeight}`)
+                    HeightRange=limitHeight
+                } else if(HeightRange < 5){
+                    game.player.sendMessage(`兄弟太矮了 限制最小高度：5`)
+                    HeightRange = 5
+                }
+                
+                CopyStructureSet.height = HeightRange
+            }
+            
+            else{
+                let WidthRange=CopyStructureSet.width + action.rangeOptions.range
+                
+                if(WidthRange > limitWidth ){
+                    game.player.sendMessage(`兄弟太寬了 限制最大寬度${limitWidth}`)
+                    WidthRange=limitWidth
+                } else if(WidthRange < 5){
+                    game.player.sendMessage(`兄弟太小了 限制最小寬度：5`)
+                    WidthRange = 5
+                }
+                
+                CopyStructureSet.width = WidthRange
+            }
+            game.player.sendMessage(`Range Change:${action.rangeOptions.range} ->${CopyStructureSet.width}x${CopyStructureSet.height}`)
+            game.structure.structureProperties = JSON.stringify(CopyStructureSet);   
+            game.changeGame()
+            
+            break;
+            
     }
 }

@@ -155,6 +155,12 @@ export class TNTCoin {
     /**
      * Start the game
      */
+
+    async changeGame(){
+        await this._structure.fillStop()
+        await this._structure.clearProtedtedStructure();
+        await this._structure.generateProtectedStructure();
+    }
     async startGame() {
         try {
             await this._structure.generateProtectedStructure();

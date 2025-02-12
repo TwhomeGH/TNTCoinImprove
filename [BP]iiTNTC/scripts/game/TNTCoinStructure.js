@@ -94,6 +94,11 @@ export class TNTCoinStructure {
      * Get the width of the structure
      * @returns {number} the width of the structure
      */
+
+    get structurelimitWidth(){
+        return this.structureProperties.limitWidth;
+    }
+    
     get structureWidth() {
         return this.structureProperties.width;
     }
@@ -101,6 +106,11 @@ export class TNTCoinStructure {
      * Get the height of the structure
      * @returns {number} the height of the structure
      */
+    
+    get structurelimitHeight() {
+        return this.structureProperties.limitHeight;
+    }
+    
     get structureHeight() {
         return this.structureProperties.height;
     }

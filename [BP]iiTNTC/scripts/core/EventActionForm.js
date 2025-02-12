@@ -47,6 +47,9 @@ export class EventActionForm {
             case 'WinManger':
                 this.WinManger(action,isEdit,index);
                 break;
+            case 'RangeSet':
+                this.RangeSet(action,isEdit,index);
+                break;
         }
     }
     
@@ -56,8 +59,13 @@ export class EventActionForm {
         let formTitle = `Action ${index + 1}`;
         let formBody = '';
         formBody += `Action Type: ${action.actionType}\n`;
-        if (action.actionType === 'Fill' || action.actionType === 'Clear Blocks') {
+        if (action.actionType === 'Clear Blocks') {
             formBody += 'This action cannot be edited.\n';
+        }
+        if (action.fillOptions) {
+            formBody += `Fill Delay: ${action.fillOptions.delay}\n`;
+            formBody += `Fill Amount: ${action.fillOptions.amount}\n`;
+            formBody += `FillStop: ${action.fillOptions.fillStop}\n`;
         }
         if (action.playSound)
             formBody += `Play Sound: ${action.playSound}\n`;
@@ -86,16 +94,56 @@ export class EventActionForm {
             formBody += `WinAdd: ${win}\n`;
             formBody += `Change Max: ${changeMax}`
         }
+        if(action.rangeOptions){
+            const { range,changeHeight }= action.rangeOptions;
+            formBody += `Range: ${range}\n`;
+            formBody += `Change Height: ${changeHeight}`
+        }
         
         const form = new ActionForm(this._player, formTitle);
             form.body(formBody);
-        if (action.actionType !== 'Fill' && action.actionType !== 'Clear Blocks') {
+        if (action.actionType !== 'Clear Blocks') {
             form.button('Edit', () => this.showActionTypeForm(action, true, index));
         }
         form.button('Delete', () => this.showClearActionFromEvent(action, index));
         form.show();
     }
     
+      
+    RangeSet(action,isEdit,index){
+         if (action.actionType !== 'RangeSet')
+            return;
+        const rangeOptions = action.rangeOptions || {
+            range:1,
+            changeHeight:false
+            
+        };
+        let formTitle = `RangeSet: ${isEdit ? 'Edit' : 'Create'} Action`;
+        formTitle += index !== undefined ? ` ${index + 1}` : '';
+        new ModalForm(this._player, formTitle)
+            .textField('number', 'Range', 'Expand or shrink', rangeOptions.range.toString())
+            .toggle("Change Height?",rangeOptions.changeHeight)
+            .submitButton('Confirm')
+            .show(response => {
+            const updatedrangeOptions = {
+                range: response[0],
+                changeHeight:response[1]
+            };
+            const updatedAction = {
+                ...action,
+                rangeOptions: updatedrangeOptions,
+            };
+            if (isEdit && index !== undefined) {
+                this._manager.updateActionInEvent(action.eventKey, index, updatedAction);
+                this._player.sendMessage(`§aAction updated.`);
+            }
+            else {
+                this._manager.addActionToEvent(updatedAction);
+                this._player.sendMessage(`§aNew action added.`);
+            }
+            this._player.playSound('random.orb');
+        });
+}
 
     WinManger(action,isEdit,index){
          if (action.actionType !== 'WinManger')
@@ -260,16 +308,41 @@ export class EventActionForm {
     showFillForm(action, isEdit, index) {
         if (action.actionType !== 'Fill')
             return;
-        new ActionForm(this._player, 'Fill Action')
-            .body('Confirm Fill Action')
-            .button('Confirm', () => {
-            this._manager.addActionToEvent(action);
-            this._player.sendMessage(`§aNew action added.`);
-            this._player.playSound('random.orb');
-        })
-            .button('Cancel')
-            .show();
+            
+        const fillOptions = action.fillOptions || {
+            delay:20,
+            amount:20,
+            fillStop:false
+        };
+        let formTitle = `Fill Action: ${isEdit ? 'Edit' : 'Create'} Action`;
+        formTitle += index !== undefined ? ` ${index + 1}` : '';
+        new ModalForm(this._player, formTitle)
+            .textField('number', 'Fill Delay', 'Fill Delay', fillOptions.delay.toString())
+            .textField('number', 'Fill Amount', 'Fill Amount', fillOptions.amount.toString())
+            .toggle('FillStop', fillOptions.fillStop)
+            .submitButton('Confirm')
+            .show(response => {
+            const updatedFill = {
+                delay:response[0],
+                amount:response[1],
+                fillStop:response[2]
+            }
+            const updatedAction = {
+                ...action,
+                fillOptions: updatedFill,
+            };
+                if (isEdit && index !== undefined) {
+                    this._manager.updateActionInEvent(action.eventKey, index, updatedAction);
+                    this._player.sendMessage(`§aAction updated.`);
+                }
+                else {
+                    this._manager.addActionToEvent(updatedAction);
+                    this._player.sendMessage(`§aNew action added.`);
+                }
+                    this._player.playSound('random.orb');
+            });
     }
+    
     showScreenTitleForm(action, isEdit, index) {
         if (action.actionType !== 'Screen Title')
             return;

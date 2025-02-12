@@ -60,6 +60,68 @@ export class TNTCoinGUI {
     /**
     * Shows the structure configuration form to the player.
     */
+    showStructureSet() {
+        new ModalForm(this._player, "TNT COIN - Structure Configuration")
+            .textField("number", "Width:", "Enter the width", this._structure.structureWidth.toString())
+            .textField("number", "Height:", "Enter the height", this._structure.structureHeight.toString())
+            .textField("number", "Max limit Width:", "limit Max width", this._structure.structurelimitWidth.toString())
+            .textField("number", "Max limit Height:", "limit Max height", this._structure.structurelimitHeight.toString())
+            .submitButton("§2Change TNT Coin§r")
+            .show(async (response) => {
+           
+            const widthStr2 = response[0].toString().trim();
+            const heightStr2 = response[1].toString().trim();
+            
+            const mwidthStr2 = response[2].toString().trim();
+            const mheightStr2 = response[3].toString().trim();
+            
+            
+            let CopyStructureSet={ ...this._game.structure.structureProperties }
+            
+            
+            let width = parseInt(widthStr2)  ;
+            let height = parseInt(heightStr2) ;
+            
+            let mwidth = parseInt(mwidthStr2)  ;
+            let mheight = parseInt(mheightStr2) ;
+            
+            if (width < 5 || height < 5) {
+                this._feedback.error("The width and height must be at least 5.", { sound: 'item.shield.block' });
+                return;
+            }
+            if (mwidth < 10 || mheight < 10) {
+                this._feedback.error("The limit width and height must be at least 10.", { sound: 'item.shield.block' });
+                return;
+            }
+            
+            if(width > mwidth){
+                width = mwidth
+            }
+            if(height > mheight){
+                height = mheight
+            }
+
+            CopyStructureSet.width=width
+            CopyStructureSet.height=height
+            
+            CopyStructureSet.limitWidth=mwidth
+            CopyStructureSet.limitHeight=mheight
+            
+            this._game.player.sendMessage(`Change Range:${width}x${height} Maxlimit:${mwidth}x${mheight}`) 
+            
+            
+            this._game.structure.structureProperties = JSON.stringify(CopyStructureSet);       
+            
+            //this._game.player.sendMessage(`DebugS:${JSON.stringify(CopyStructureSet,"\n",3)}`) 
+            //this._game.player.sendMessage(`Debug:${JSON.stringify(this._game.structure.structureProperties,"\n",3)}`) 
+            
+            
+            await this._game.changeGame();
+            
+        })
+        
+        
+    }
     showStructureConfigForm() {
         new ModalForm(this._player, "TNT COIN - Structure Configuration")
             .textField("string", "Base Block Type:", "Enter the block type for the base", "minecraft:quartz_block")
@@ -67,6 +129,8 @@ export class TNTCoinGUI {
             .textField("string", "Floor Block Type", "Enter the block type for the floor", "minecraft:gold_block")
             .textField("number", "Width:", "Enter the width", "12")
             .textField("number", "Height:", "Enter the height", "12")
+            .textField("number", "Max limit Width:", "limit Max width", "50")
+            .textField("number", "Max limit Height:", "limit Max height", "30")
             .submitButton("§2Start TNT Coin§r")
             .show(async (response) => {
             const baseBlockName = response[0].toString().trim();
@@ -76,6 +140,13 @@ export class TNTCoinGUI {
             const heightStr = response[4].toString().trim();
             const width = parseInt(widthStr);
             const height = parseInt(heightStr);
+            
+            
+            const limitwidthStr = response[5].toString().trim();
+            const limitheightStr = response[6].toString().trim();
+            const limitWidth = parseInt(limitwidthStr);
+            const limitHeight = parseInt(limitheightStr);
+           
             try {
                 BlockPermutation.resolve(baseBlockName);
                 BlockPermutation.resolve(sideBlockName);
@@ -89,6 +160,10 @@ export class TNTCoinGUI {
                 this._feedback.error("The width and height must be at least 5.", { sound: 'item.shield.block' });
                 return;
             }
+            if (limitWidth < 10 || limitHeight < 10) {
+                this._feedback.error("The limit width and height must be at least 10.", { sound: 'item.shield.block' });
+                return;
+            }
             const centerLocation = floorVector3(getStructureCenter(this._player, width));
             const newStructureProperties = {
                 centerLocation,
@@ -99,6 +174,8 @@ export class TNTCoinGUI {
                     sideBlockName,
                     floorBlockName
                 },
+                limitWidth,
+                limitHeight
             };
             this.setupGame();
             this._game.structure.structureProperties = JSON.stringify(newStructureProperties);
@@ -115,6 +192,8 @@ export class TNTCoinGUI {
             .body(`§aWelcome§f to §cTNT §eCOIN§f!\n\n` +
             `§bWins§f: ${wins < 0 ? '§c' : '§a'}${wins}§f/§a${maxWin}§f\n` +
             `§bBlock to Place§f: §a${this._structure.airBlockLocations.length}§f\n`)
+            
+            .button("[Test]StructureConfig",this.showStructureSet.bind(this))
             .button('Summon Entity', this.showSummonEntityForm.bind(this), 'textures/tnt-coin/gui/buttons/npc.png')
             .button('Summon TNT', this._game.summonTNT.bind(this._game), 'textures/tnt-coin/gui/buttons/tnt.png')
             .button('Fill Blocks', this._structure.fill.bind(this._structure), 'textures/tnt-coin/gui/buttons/brush.png')

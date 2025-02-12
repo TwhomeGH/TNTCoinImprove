@@ -3,7 +3,7 @@ export class EventActionFormBase {
     _eventActionForm;
     _actionOptions = [
         'Summon', 'Play Sound', 'Fill', 'Clear Blocks', 'Screen Title', 'Screen Subtitle','Command',
-		'WinManger'
+		'WinManger',"RangeSet"
     ];
     constructor(player, eventActionForm) {
         this._player = player;
