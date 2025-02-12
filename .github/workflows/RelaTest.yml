@@ -34,14 +34,27 @@ jobs:
           zip -r output/TNTCoinImprove.mcaddon [BP]iiTNTC [RP]iiTNTC
           zip -r output/TNTCoinImproveBP.mcpack [BP]iiTNTC
           zip -r output/TNTCoinImproveRP.mcpack [RP]iiTNTC
+
+
+      - name: 生成 Release 日誌
+        id: log
+        run: |
+          # 獲取最近的提交訊息
+          RECENT_COMMITS=$(git log -5 --pretty=format:"%h - %s")
+
+          # 更新 RELEASE_LOG.md 文件
+          echo "## 新 Release" >> RELEASE_LOG.md
+          echo "$RECENT_COMMITS" >> RELEASE_LOG.md
+
+          # 將提交訊息輸出為工作流上下文
+          echo "::set-output name=recent_commits::$RECENT_COMMITS"
           
       - name: 上傳到 GitHub Releases
-        
         uses: softprops/action-gh-release@v1
         with:
           files: |
             output/TNTCoinImprove.mcaddon
             output/TNTCoinImproveBP.mcpack
             output/TNTCoinImproveRP.mcpack
-          
           draft: true
+          body: ${{ steps.log.outputs.recent_commits }}
