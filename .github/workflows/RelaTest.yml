@@ -35,7 +35,11 @@ jobs:
           zip -r output/TNTCoinImproveBP.mcpack [BP]iiTNTC
           zip -r output/TNTCoinImproveRP.mcpack [RP]iiTNTC
 
-
+      - name: 檢查並創建 RELEASE_LOG.md 文件
+        run: |
+          if [ ! -f RELEASE_LOG.md ]; then
+            echo "## 新Release Log" > RELEASE_LOG.md
+          fi
       - name: 生成 Release 日誌
         id: log
         run: |
@@ -43,7 +47,6 @@ jobs:
           RECENT_COMMITS=$(git log -5 --pretty=format:"%h - %s")
 
           # 更新 RELEASE_LOG.md 文件
-          echo "## 新 Release" >> RELEASE_LOG.md
           echo "$RECENT_COMMITS" >> RELEASE_LOG.md
 
           # 打印提交訊息到終端
