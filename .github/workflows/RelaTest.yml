@@ -46,6 +46,9 @@ jobs:
           echo "## 新 Release" >> RELEASE_LOG.md
           echo "$RECENT_COMMITS" >> RELEASE_LOG.md
 
+          # 打印提交訊息到終端
+          echo "Recent commits: $RECENT_COMMITS"
+
           # 將提交訊息輸出為環境變量
           echo "RECENT_COMMITS=$RECENT_COMMITS" >> $GITHUB_ENV
           
