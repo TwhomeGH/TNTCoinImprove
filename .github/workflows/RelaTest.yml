@@ -47,7 +47,7 @@ jobs:
           echo "$RECENT_COMMITS" >> RELEASE_LOG.md
 
           # 將提交訊息輸出為工作流上下文
-          echo "name=recent_commits::$RECENT_COMMITS" >> $GITHUB_OUTPUT
+          echo "recent_commits=$RECENT_COMMITS" >> $GITHUB_OUTPUT
           
       - name: 上傳到 GitHub Releases
         uses: softprops/action-gh-release@v1
