@@ -41,11 +41,9 @@ jobs:
         run: |
           # 獲取最近的提交訊息
           RECENT_COMMITS=$(git log -5 --pretty=format:"%h - %s")
-
           # 更新 RELEASE_LOG.md 文件
           echo "## 新 Release" >> RELEASE_LOG.md
           echo "$RECENT_COMMITS" >> RELEASE_LOG.md
-
           # 將提交訊息輸出為工作流上下文
           echo "recent_commits=$RECENT_COMMITS" >> $GITHUB_OUTPUT
           
