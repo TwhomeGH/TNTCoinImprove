@@ -11,6 +11,8 @@ export class WinManager {
     /**
      * Sets up the ActionBar to display the current and maximum wins.
      */
+
+            
     setupActionBar() {
         this._actionBar.addTask(this._taskId, () => {
             const currentWins = this._currentWins;

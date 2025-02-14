@@ -81,6 +81,10 @@ world.afterEvents.playerPlaceBlock.subscribe(event => {
     const player = event.player;
     const blockUsed = event.block.typeId;
     const gui = INGAME_PLAYERS.get(player.name);
+    
+    //const fillMax=gui.game.structure.filledBlockLocations.size + gui.game.structure.airBlockLocations.length
+    //player.sendMessage(`${gui.game.structure.filledBlockLocations.size}/${fillMax}`)
+    
     if (gui?.game.isPlayerInGame && gui.game.settings.randomizeBlocks && blockUsed === RANDOM_BLOCK_ITEM) {
         try {
             const randomBlockType = getRandomBlock();

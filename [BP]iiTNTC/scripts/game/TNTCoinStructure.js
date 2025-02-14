@@ -17,6 +17,7 @@ export class TNTCoinStructure {
     _fillBlockName = "minecraft:stone";
     _fillTickInterval = 1;
     _fillBlocksPerTick = 50;
+    _fillAllowAirAmount = 0;
     _isFilling = false;
     _protectedBlockLocations = new Set();
     _airBlockLocations = new Set();
@@ -32,6 +33,8 @@ export class TNTCoinStructure {
         this._dimension = player.dimension;
         this._feedback = new PlayerFeedback(player);
     }
+    
+    
     /**
      * Get the structure key
      */
@@ -78,6 +81,13 @@ export class TNTCoinStructure {
     /**
      * Set the fill settings
      */
+    
+    get allowAmount(){
+        return this._fillAllowAirAmount;
+    }
+    set allowAmount(allAmount){
+        this._fillAllowAirAmount = allAmount;
+    }
     set fillSettings({ blockName, tickInterval, blocksPerTick }) {
         this._fillBlockName = blockName;
         this._fillTickInterval = tickInterval;
@@ -403,7 +413,10 @@ export class TNTCoinStructure {
                 if (!isBlockAir(this._dimension, blockLocation))
                     this._filledBlockLocations.add(JSON.stringify(blockLocation));
             }, width - 1, height, centerLocation);
-            return this._filledBlockLocations.size === this._airBlockLocations.size;
+            
+            let filledSize=this._filledBlockLocations.size + this._fillAllowAirAmount
+            //this._player.sendMessage(`${this._filledBlockLocations.size}/${this._airBlockLocations.size} `)
+            return filledSize >= this._airBlockLocations.size;
         }
         catch (error) {
             console.error(`Failed to check fill status: `, error);

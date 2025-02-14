@@ -188,11 +188,15 @@ export class TNTCoinGUI {
     showInGameForm() {
         const wins = this._game.winManager.getCurrentWins();
         const maxWin = this._game.winManager.getMaxWins();
+        let maxfillblock=this._structure.airBlockLocations.length + this._structure.filledBlockLocations.size
+        
         new ActionForm(this._player, '§1§kii§r§c§lTNT§eCOIN§r§5§kii§r')
             .body(`§aWelcome§f to §cTNT §eCOIN§f!\n\n` +
             `§bWins§f: ${wins < 0 ? '§c' : '§a'}${wins}§f/§a${maxWin}§f\n` +
-            `§bBlock to Place§f: §a${this._structure.airBlockLocations.length}§f\n`)
-            
+            `§bBlock to Place§f: §a${this._structure.airBlockLocations.length}§f\n` +
+            `§bFinish Block to Place§f: §a${this._structure.filledBlockLocations.size}§f\n` +
+            `§bFinish 100% §f: §a${Math.round((this._structure.filledBlockLocations.size/maxfillblock)*100,3)}%§f\n` +
+            `§bFinish §f: ${this._structure.filledBlockLocations.size}/${maxfillblock}§f\n`)
             .button("[Test]StructureConfig",this.showStructureSet.bind(this))
             .button('Summon Entity', this.showSummonEntityForm.bind(this), 'textures/tnt-coin/gui/buttons/npc.png')
             .button('Summon TNT', this._game.summonTNT.bind(this._game), 'textures/tnt-coin/gui/buttons/tnt.png')
@@ -301,6 +305,8 @@ export class TNTCoinGUI {
         })
             .textField("number", "[§eFILL§r] Delay in Ticks:", "Enter the delay in ticks to fill blocks", oldSettings.fillSettings.tickInterval.toString(), (updatedValue) => newSettings.fillSettings.tickInterval = updatedValue)
             .textField("number", "[§eFILL§r] Amount of Blocks per tick:", 'Enter the amount of blocks to fill per tick', oldSettings.fillSettings.blocksPerTick.toString(), (updatedValue) => newSettings.fillSettings.blocksPerTick = updatedValue)
+            .textField("number", "[§eFILL§r] 方塊容錯:", '允許方塊容錯數', this._game.structure.allowAmount.toString(), (updatedValue) => this._game.structure.allowAmount = updatedValue)
+            
             .submitButton('§2Update Settings§r')
             .show(() => {
             const isSettingsChanged = JSON.stringify(oldSettings) !== JSON.stringify(newSettings);

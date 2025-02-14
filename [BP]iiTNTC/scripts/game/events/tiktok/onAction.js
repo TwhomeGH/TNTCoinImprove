@@ -1,4 +1,5 @@
 import { DEFAULT_GIFT, TIKTOK_GIFT } from "../../../lang/tiktokGifts";
+//import TaskManager from "../../../core/TaskManager";
 
 //import { executeAction } from "../../actions/executeAction";
 /**
@@ -7,7 +8,7 @@ import { DEFAULT_GIFT, TIKTOK_GIFT } from "../../../lang/tiktokGifts";
  * @param {string} message the message sent by TikTokLiveMCBE
  */
 export function onAction(game, message) {
-    const { nickname, uniqueId,sts } = JSON.parse(message);
+    //const { nickname, uniqueId,sts } = JSON.parse(message);
     const giftEvents = game.giftActionManager.getAllEvents();
     
 	
@@ -31,6 +32,19 @@ export function onAction(game, message) {
            
         
     });
+    
+    game.player.sendMessage("[點贊數]累計事件：")
+    
+    const likeActions = game.likeActionManager.getAllEvents();
+    if (likeActions.size > 0) {
+        likeActions.forEach((actions, likeKey) => {
+            //const likeThreshold = parseInt(likeKey);
+            
+            game.player.sendMessage("點贊數30秒內累計："+likeKey)
+            actions.forEach(action => game.player.sendMessage("運行類型："+action.actionType));
+            
+        });
+    }
 	//if (actions.length > 0) {
         //for (const action of actions){
             //executeAction(game, action);
