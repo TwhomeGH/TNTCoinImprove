@@ -52,10 +52,7 @@ jobs:
           # 打印提交訊息到終端
           echo "Recent commits: $RECENT_COMMITS"
 
-
-
-      - name: 檢查並更新舊的 release 草稿
-        
+      - name: 檢查並更新 release 草稿或創建新草稿
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -65,21 +62,20 @@ jobs:
             curl -X PATCH \
               -H "Authorization: token $GITHUB_TOKEN" \
               -H "Content-Type: application/json" \
-              -d "$(jq -n --arg body "$(cat RELEASE_LOG.md)" '{"body": $body}')" \
+              -d "$(jq -n --arg body "$(cat RELEASE_LOG.md)" --arg files "$(ls output)" '{"body": $body, "files": $files}')" \
               https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID
           else
             echo "No draft release found. Creating a new draft release."
             NEW_RELEASE=$(curl -X POST \
               -H "Authorization: token $GITHUB_TOKEN" \
               -H "Content-Type: application/json" \
-              -d "$(jq -n --arg tag_name "v1.0.0" --arg name "v1.0.0" --arg body "$(cat RELEASE_LOG.md)" '{"tag_name": $tag_name, "name": $name, "body": $body, "draft": true}')" \
+              -d "$(jq -n --arg tag_name "v1.0.0" --arg name "v1.0.0" --arg body "$(cat RELEASE_LOG.md)" --arg files "$(ls output)" '{"tag_name": $tag_name, "name": $name, "body": $body, "files": $files, "draft": true}')" \
               https://api.github.com/repos/${{ github.repository }}/releases)
             NEW_RELEASE_ID=$(echo $NEW_RELEASE | jq -r '.id')
             echo "Created new draft release with ID: $NEW_RELEASE_ID"
             echo "release_id=$NEW_RELEASE_ID" >> $GITHUB_ENV
           fi
 
-            
       - name: 上傳到 GitHub Releases
         uses: softprops/action-gh-release@v1
         with:
