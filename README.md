@@ -62,3 +62,31 @@ StructureConfig 該選項 讓你能夠隨時調整結構的大小
 
 > 如果修改後超過最大限制寬度/高度 會以最高限制寬度/高度為最終值
 
+![達標提示](Docs/IMG_1790.jpeg "ReachWin")
+
+### 達標提醒
+
+如果你已成功達到設定的目標勝利場次
+那麼會在顯示勝利場數的位置額外加上完成
+
+> 你可以菜單裡設置它的狀態
+
+![事件展示計分板](Docs/IMG_1791.jpeg "listAction")
+
+### listAction 腳本事件 : 行動快速總覽
+
+你可以直接使用 不必傳送對象值
+
+`/scriptevent listAction`
+
+也可以傳送要修改的 對象值
+允許只修改部分 沒有填的對象值會自動補齊預設值
+
+`/scriptevent listAction {"rdelay":60,"adelay:60","debug":false}`
+
+
+| 對象 | 說明 | 類型 | 預設值 |
+| --- | -- | -- | -- |
+| rdealy | 起始運行等待間隔（20t = 1s) | Number | 60 |
+| adealy | 下一組事件展示等待間隔（20t = 1s) | Number | 60 |
+| debug | 調試用訊息 | boolean | false |
