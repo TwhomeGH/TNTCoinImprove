@@ -77,13 +77,16 @@ jobs:
             echo "release_id=$NEW_RELEASE_ID" >> $GITHUB_ENV
           fi
 
-      - name: 上傳到 GitHub Releases
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            output/TNTCoinImprove.mcaddon
-            output/TNTCoinImproveBP.mcpack
-            output/TNTCoinImproveRP.mcpack
-          draft: true
-          body_path: RELEASE_LOG.md
-          release_id: ${{ env.release_id }}
+      - name: 上傳文件到 release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_ID=$(cat $GITHUB_ENV | grep "release_id=" | cut -d '=' -f 2)
+          echo "Uploading files to release ID: $RELEASE_ID"
+          for file in output/*; do
+            curl -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Content-Type: application/zip" \
+              --data-binary @"$file" \
+              "https://uploads.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets?name=$(basename $file)"
+          done
