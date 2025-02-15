@@ -64,13 +64,13 @@ jobs:
             curl -X PATCH \
               -H "Authorization: token $GITHUB_TOKEN" \
               -H "Content-Type: application/json" \
-              -d "{\"body\": \"$(cat RELEASE_LOG.md | jq -sR .)\"}" \
+              -d "$(jq -n --arg body "$(cat RELEASE_LOG.md)" '{"body": $body}')" \
               https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID
           else
             curl -X POST \
               -H "Authorization: token $GITHUB_TOKEN" \
               -H "Content-Type: application/json" \
-              -d "{\"tag_name\": \"v1.0.0\", \"name\": \"v1.0.0\", \"body\": \"$(cat RELEASE_LOG.md | jq -sR .)\", \"draft\": true}" \
+              -d "$(jq -n --arg tag_name "v1.0.0" --arg name "v1.0.0" --arg body "$(cat RELEASE_LOG.md)" '{"tag_name": $tag_name, "name": $name, "body": $body, "draft": true}')" \
               https://api.github.com/repos/${{ github.repository }}/releases
           fi
 
