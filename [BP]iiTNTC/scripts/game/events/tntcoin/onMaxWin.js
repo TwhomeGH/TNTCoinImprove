@@ -17,4 +17,6 @@ export async function onMaxWin(game) {
     await game.resetGame();
     game.winManager.resetWins();
     game.timerManager.stop();
+	
+	game.winManager.Hasreach=true
 }

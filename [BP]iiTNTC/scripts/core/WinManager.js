@@ -1,4 +1,5 @@
 export class WinManager {
+    _reachMaxWin=false;
     _currentWins = 0;
     _maxWins;
     _actionBar;
@@ -12,7 +13,13 @@ export class WinManager {
      * Sets up the ActionBar to display the current and maximum wins.
      */
 
-            
+    get Hasreach(){
+        return this._reachMaxWin;
+    }
+    set Hasreach(bool){
+        this._reachMaxWin = bool;
+    }
+              
     setupActionBar() {
         this._actionBar.addTask(this._taskId, () => {
             const currentWins = this._currentWins;
@@ -24,7 +31,12 @@ export class WinManager {
             else if (currentWins >= maxWins) {
                 countColor = '§c';
             }
-            return ['Wins: ', countColor, currentWins, '§f/', '§a', maxWins];
+            
+            let TipReach=""
+            if(this._reachMaxWin){
+                TipReach="§a[Completed]§f"
+            }
+            return [TipReach,'Wins: ', countColor, currentWins, '§f/', '§a', maxWins];
         });
     }
     /**

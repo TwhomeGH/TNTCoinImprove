@@ -289,6 +289,9 @@ export class TNTCoinGUI {
                 this._game.actionbar.stop();
             }
         })
+        
+            .toggle("[§eWin§r] 已達到目標勝場 完成狀態控制", this._game.winManager.Hasreach, (updatedValue) => this._game.winManager.Hasreach = updatedValue)
+            
             .textField("number", "[§eWIN§r] Set Wins", "Enter the amount of wins:", oldSettings.wins.toString(), (updatedValue) => newSettings.wins = updatedValue)
             .textField("number", "[§eWIN§r] Max Win", "Enter the max win:", oldSettings.maxWins.toString(), (updatedValue) => newSettings.maxWins = updatedValue)
             .textField("number", '[§eCOUNTDOWN§r] Starting count value:', 'Enter the starting count for the countdown', oldSettings.defaultCountdownTime.toString(), (updatedValue) => newSettings.defaultCountdownTime = updatedValue)
@@ -306,7 +309,7 @@ export class TNTCoinGUI {
             .textField("number", "[§eFILL§r] Delay in Ticks:", "Enter the delay in ticks to fill blocks", oldSettings.fillSettings.tickInterval.toString(), (updatedValue) => newSettings.fillSettings.tickInterval = updatedValue)
             .textField("number", "[§eFILL§r] Amount of Blocks per tick:", 'Enter the amount of blocks to fill per tick', oldSettings.fillSettings.blocksPerTick.toString(), (updatedValue) => newSettings.fillSettings.blocksPerTick = updatedValue)
             .textField("number", "[§eFILL§r] 方塊容錯:", '允許方塊容錯數', this._game.structure.allowAmount.toString(), (updatedValue) => this._game.structure.allowAmount = updatedValue)
-            
+           
             .submitButton('§2Update Settings§r')
             .show(() => {
             const isSettingsChanged = JSON.stringify(oldSettings) !== JSON.stringify(newSettings);
