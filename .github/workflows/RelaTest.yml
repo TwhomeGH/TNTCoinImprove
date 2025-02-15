@@ -63,12 +63,14 @@ jobs:
           if [ -n "$RELEASE_ID" ]; then
             curl -X PATCH \
               -H "Authorization: token $GITHUB_TOKEN" \
-              -d "{\"body\": \"$(cat RELEASE_LOG.md)\"}" \
+              -H "Content-Type: application/json" \
+              -d "{\"body\": \"$(cat RELEASE_LOG.md | jq -sR .)\"}" \
               https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID
           else
             curl -X POST \
               -H "Authorization: token $GITHUB_TOKEN" \
-              -d "{\"tag_name\": \"v1.0.0\", \"name\": \"v1.0.0\", \"body\": \"$(cat RELEASE_LOG.md)\", \"draft\": true}" \
+              -H "Content-Type: application/json" \
+              -d "{\"tag_name\": \"v1.0.0\", \"name\": \"v1.0.0\", \"body\": \"$(cat RELEASE_LOG.md | jq -sR .)\", \"draft\": true}" \
               https://api.github.com/repos/${{ github.repository }}/releases
           fi
 
