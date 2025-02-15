@@ -55,34 +55,22 @@ jobs:
 
 
       - name: 檢查並更新舊的 release 草稿
-        uses: actions/github-script@v6
+        
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-           script: |
-             const { owner, repo } = context.repo;
-             const releases = await github.repos.listReleases({ owner, repo });
-             const draftRelease = releases.data.find(release => release.draft);
-             if (draftRelease) {
-               const release_id = draftRelease.id;
-               github.repos.updateRelease({
-                 owner,
-                 repo,
-                 release_id,
-                 body: fs.readFileSync('RELEASE_LOG.md', 'utf8')
-               });
-               core.setOutput('release_id', release_id);
-             } else {
-                const newRelease = await github.repos.createRelease({
-                owner,
-                repo,
-                tag_name: 'v1.0.0',
-                name: 'v1.0.0',
-                body: fs.readFileSync('RELEASE_LOG.md', 'utf8'),
-                draft: true
-              });
-              core.setOutput('release_id', newRelease.data.id);
-             }
+        run: |
+          RELEASE_ID=$(curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/${{ github.repository }}/releases | jq -r '.[] | select(.draft == true) | .id')
+          if [ -n "$RELEASE_ID" ]; then
+            curl -X PATCH \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -d "{\"body\": \"$(cat RELEASE_LOG.md)\"}" \
+              https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID
+          else
+            curl -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -d "{\"tag_name\": \"v1.0.0\", \"name\": \"v1.0.0\", \"body\": \"$(cat RELEASE_LOG.md)\", \"draft\": true}" \
+              https://api.github.com/repos/${{ github.repository }}/releases
+          fi
 
             
       - name: 上傳到 GitHub Releases
