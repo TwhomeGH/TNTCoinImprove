@@ -56,6 +56,8 @@ jobs:
 
       - name: 檢查並更新舊的 release 草稿
         uses: actions/github-script@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
            script: |
              const { owner, repo } = context.repo;
