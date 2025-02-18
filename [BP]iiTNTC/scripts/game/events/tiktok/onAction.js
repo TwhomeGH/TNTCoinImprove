@@ -287,7 +287,7 @@ export function onAction(game, message={}) {
     
     
     
-    timeoutID=game.player.name + ":delay:clearDisplay" 
+    let timeoutID=game.player.name + ":delay:clearDisplay" 
     
     rdelay+=120
     
