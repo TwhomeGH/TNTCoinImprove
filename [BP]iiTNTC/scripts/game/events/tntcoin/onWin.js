@@ -20,6 +20,10 @@ export async function onWin(game) {
         game.feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE, sound: SOUND });
         game.player.dimension.spawnParticle('minecraft:totem_particle', game.player.location);
     }, 20);
+    
+    //初始化方塊統計
+    game._structure.fullCheckInitial();
+    
     await game.resetGame();
     game.timerManager.restart();
 }

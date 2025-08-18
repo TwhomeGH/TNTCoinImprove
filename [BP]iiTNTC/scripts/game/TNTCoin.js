@@ -164,6 +164,9 @@ export class TNTCoin {
     async startGame() {
         try {
             await this._structure.generateProtectedStructure();
+            
+            this._structure.fullCheckInitial(); // ✅ 初始化已填充方塊
+
             if (this.settings.useBarriers)
                 await this._structure.generateBarriers();
             this._player.setSpawnPoint({

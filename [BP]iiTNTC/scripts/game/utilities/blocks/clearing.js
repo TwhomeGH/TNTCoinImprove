@@ -11,7 +11,7 @@ export function clearBlock(dimension, blockLocation) {
     if (!isBlockAir(dimension, blockLocation)) {
         try {
             const permutation = BlockPermutation.resolve('minecraft:air');
-            blockAtLocation.setPermutation(permutation);
+            blockAtLocation.setPermutation(permutation);	
         }
         catch (error) {
             console.error(`Failed to clear block: ${error}`);
@@ -25,6 +25,11 @@ export function clearBlock(dimension, blockLocation) {
 * @param {number} batchSize
 * @returns {Promise<void>} a promise that resolves when the blocks have been cleared.
 */
-export async function clearBlocks(dimension, blockLocations, batchSize) {
-    await batch(blockLocations, batchSize, (blockLocation) => clearBlock(dimension, blockLocation));
+export async function clearBlocks(dimension, blockLocations, batchSize,options = {}) {
+    await batch(blockLocations, batchSize, (blockLocation) => {
+        
+        clearBlock(dimension, blockLocation)
+        // ✅ 呼叫回調
+        if (options.onClearBlock) options.onClearBlock(blockLocation);
+        });
 }

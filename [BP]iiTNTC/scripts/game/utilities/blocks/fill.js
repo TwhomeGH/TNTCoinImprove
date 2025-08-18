@@ -30,6 +30,7 @@ export async function fill(dimension, blockName, blockLocations, chunkSize, fill
             return;
         try {
             const blockAtLocation = dimension.getBlock(blockLocation);
+            
             if (!blockAtLocation) {
                 throw new Error(`Block at location ${blockLocation} is undefined.`);
             }

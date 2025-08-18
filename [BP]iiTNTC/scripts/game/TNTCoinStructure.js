@@ -1,3 +1,5 @@
+import { system } from "@minecraft/server";
+
 import { PlayerFeedback } from "../core/PlayerFeedback";
 import { floorVector3 } from "./utilities/math/floorVector";
 import { fill } from "./utilities/blocks/fill";
@@ -22,6 +24,8 @@ export class TNTCoinStructure {
     _protectedBlockLocations = new Set();
     _airBlockLocations = new Set();
     _filledBlockLocations = new Set();
+    _cacheValid = false;                // 緩存是否有效
+    _isFilledCache = false;             // 緩存結果
     _barrierBlockLocations = new Set();
     /**
     * Creates a new instance of the TNTCoinGameStructure class.
@@ -207,7 +211,7 @@ export class TNTCoinStructure {
     async generateProtectedStructure() {
         let protectedBlocks = [];
         try {
-            this.iterateProtectedBlockLocations({ x: 0, y: 0, z: 0 }, (blockLocation, blockName) => {
+            await this.iterateProtectedBlockLocations({ x: 0, y: 0, z: 0 }, (blockLocation, blockName) => {
                 protectedBlocks.push({ blockName, blockLocation });
             });
             await this.generateProtectedBlocks(protectedBlocks);
@@ -222,59 +226,83 @@ export class TNTCoinStructure {
     * @returns {Promise<void>} a promise that resolves when all blocks have been generated.
     */
     async generateProtectedBlocks(blocks) {
-        const chunkSize = 100;
-        for (const block of blocks) {
-            try {
-                await fill(this._dimension, block.blockName, [block.blockLocation], chunkSize, {
-                    onSetBlock: (location) => this._protectedBlockLocations.add(JSON.stringify(location)),
-                });
+            const chunkSize = 1000;
+        
+            // 先按 blockName 分組
+            const blocksByName = {};
+            for (const b of blocks) {
+                if (!blocksByName[b.blockName]) blocksByName[b.blockName] = [];
+                blocksByName[b.blockName].push(b.blockLocation);
             }
-            catch (error) {
-                throw error;
+        
+            // 對每組方塊分批生成
+            for (const blockName in blocksByName) {
+                const locations = blocksByName[blockName];
+                for (let i = 0; i < locations.length; i += chunkSize) {
+                    const chunk = locations.slice(i, i + chunkSize);
+        
+                    try {
+                        await fill(this._dimension, blockName, chunk, chunk.length, {
+                            onSetBlock: (loc) => this._protectedBlockLocations.add(JSON.stringify(loc)),
+                        });
+                    } catch (err) {
+                        console.error("Failed to generate protected blocks:", err);
+                        throw err;
+                    }
+                }
             }
-        }
     }
     /**
     * Gets the locations of the protected blocks.
     * @param {Vector3} startingPosition where's location to start
     * @param {(blockLocation: Vector3, blockName: string) => void} handleBlock handle block location
     */
-    iterateProtectedBlockLocations(startingPosition, handleBlock) {
+
+
+    async iterateProtectedBlockLocations(startingPosition, handleBlock, batchSize = 1000) {
         this._airBlockLocations.clear();
         const { width, height, centerLocation, blockOptions } = this.structureProperties;
         const { baseBlockName, sideBlockName, floorBlockName } = blockOptions;
         const heightMinRange = this._dimension.heightRange.min;
         const heightMaxRange = this._dimension.heightRange.max;
-        try {
-            iterateBlocks(startingPosition, (blockLocation) => {
+    
+        // 先生成所有相對位置
+        const allBlocks = [];
+        iterateBlocks(startingPosition, (blockLocation) => {
+            const { x, y, z } = blockLocation;
+            if (y < heightMinRange || y > heightMaxRange) return;
+    
+            allBlocks.push(blockLocation);
+        }, width, height);
+    
+        // 分批處理
+        for (let i = 0; i < allBlocks.length; i += batchSize) {
+            const batch = allBlocks.slice(i, i + batchSize);
+            for (const blockLocation of batch) {
                 const { x, y, z } = blockLocation;
-                // Check if block is out of bounds
-                if (y < heightMinRange || y > heightMaxRange) {
-                    throw new Error('Block out of bounds.');
-                }
                 const blockPosition = JSON.stringify(getRelativeBlockLocation(centerLocation, blockLocation));
+    
                 const isOnPerimeter = isBlockOnPerimeter(blockLocation, width, height);
                 const isOnBottomLayer = isBlockOnBottomLayer(y);
                 const isOnBoundary = isBlockOnBoundary(y, height);
                 const isOnBorder = isBlockOnBorder({ x, z }, width);
-                let blockName = null;
+    
+                let blockName;
                 if (isOnBottomLayer) {
                     blockName = isOnBorder ? baseBlockName : floorBlockName;
-                }
-                else if (isOnPerimeter) {
+                } else if (isOnPerimeter) {
                     blockName = isOnBoundary ? baseBlockName : sideBlockName;
                 }
+    
                 if (blockName) {
                     handleBlock(JSON.parse(blockPosition), blockName);
                     this._protectedBlockLocations.add(blockPosition);
-                }
-                else {
+                } else {
                     this._airBlockLocations.add(blockPosition);
                 }
-            }, width, height);
-        }
-        catch (error) {
-            throw error;
+            }
+            // 等待一個 tick，讓 event loop 先處理其他事情，避免 Watchdog
+            await new Promise(resolve => system.runTimeout(resolve, 1));
         }
     }
     /**
@@ -366,6 +394,7 @@ export class TNTCoinStructure {
                 isFilling: () => this._isFilling,
                 setFilling: (isFilling) => (this._isFilling = isFilling),
                 onSetBlock: (blockLocation) => {
+                    this.updateFilledBlock(blockLocation);  // ✅ 更新結構狀態
                     const { x, y, z } = blockLocation;
                     this._dimension.spawnParticle(ON_SET_BLOCK_PARTICLE, { x, y: y + 1, z });
                     this._player.playSound(ON_SET_BLOCK_SOUND);
@@ -393,7 +422,9 @@ export class TNTCoinStructure {
             return;
         const SOUND = 'mob.wither.break_block';
         try {
-            await clearBlocks(this._dimension, this.blocksToClear, 100);
+            await clearBlocks(this._dimension, this.blocksToClear, 100, {
+        onClearBlock: (blockLocation) => this.updateFilledBlock(blockLocation)
+        });
             this._feedback.playSound(SOUND);
         }
         catch (error) {
@@ -401,10 +432,57 @@ export class TNTCoinStructure {
             this._feedback.error("Failed to clear blocks.");
         }
     }
+    
     /**
+     * Update filled block locations when a block is placed or removed.
+     * @param {Vector3} blockLocation
+     */
+    updateFilledBlock(location) {
+    if (!location) return;
+
+    const loc = floorVector3(location);
+    const key = JSON.stringify(loc);
+
+    if (!isBlockAir(this._dimension, loc)) {
+        this._filledBlockLocations.add(key);
+    } else {
+        this._filledBlockLocations.delete(key);
+    }
+    
+    // ✅ 重置緩存，保證下一次 isStructureFilled() 會重新計算
+    this._cacheValid = false;
+}
+    
+    
+        /**
+     * Checks if the structure is fully filled.
+     * @returns {boolean} `true` if the structure is fully filled, `false` otherwise.
+     */
+    isStructureFilled() {
+        if (this._cacheValid) return this._isFilledCache;
+        
+        /*隨便取 _filledBlockLocations 的第一個元素
+        const firstFilled = this._filledBlockLocations.values().next().value;
+        this._player.sendMessage(`第一個 filled block: ${firstFilled}`);
+        
+        // 如果是 _airBlockLocations
+        const firstAir = this._airBlockLocations.values().next().value;
+        this._player.sendMessage(`第一個 air block: ${firstAir}`);
+        */
+
+
+        const filledSize = this._filledBlockLocations.size + this._fillAllowAirAmount;
+        this._isFilledCache = filledSize >= this._airBlockLocations.size;
+        this._cacheValid = true;
+    
+        return this._isFilledCache;
+    }
+    
+    /**
+    * Old check
     * Checks if the structure is fully filled.
     * @returns {boolean} `true` if the structure is fully filled, `false` otherwise.
-    */
+    
     isStructureFilled() {
         this._filledBlockLocations.clear();
         const { width, height, centerLocation } = this.structureProperties;
@@ -422,5 +500,20 @@ export class TNTCoinStructure {
             console.error(`Failed to check fill status: `, error);
             return false;
         }
+    }
+    */
+    
+        /**
+     * Perform a full initial check of the structure to populate filledBlockLocations.
+     */
+    fullCheckInitial() {
+    this._filledBlockLocations.clear();
+    for (const locStr of this._airBlockLocations) {
+        const loc = JSON.parse(locStr);  // 解析 JSON
+        if (!isBlockAir(this._dimension, loc)) {
+            this._filledBlockLocations.add(locStr);
+        }
+    }
+        this._cacheValid = false;
     }
 }

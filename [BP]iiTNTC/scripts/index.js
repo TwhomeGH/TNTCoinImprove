@@ -29,8 +29,10 @@ world.beforeEvents.itemUse.subscribe((event) => {
 world.beforeEvents.playerBreakBlock.subscribe(event => {
     const block = event.block;
     const blockLocation = JSON.stringify(floorVector3(block.location));
+
     world.getAllPlayers().forEach(player => {
         const gui = INGAME_PLAYERS.get(player.name);
+          
         if (gui?.game.isPlayerInGame && gui.game.structure.protectedBlockLocations.has(blockLocation)) {
             event.cancel = true;
             system.run(() => player.playSound("item.shield.block"));
@@ -74,27 +76,52 @@ world.afterEvents.playerSpawn.subscribe(async (event) => {
         console.error(`No game state found or failed to load for player ${playerName}: ${error.message}`);
     }
 });
+
+
+//世界方塊破壞事件更新
+
+world.afterEvents.playerBreakBlock.subscribe(event => {
+         
+    const player = event.player;
+    const blockUsed = event.block.typeId;
+    const block = event.block;
+    const gui = INGAME_PLAYERS.get(player.name);
+    
+    if (!gui?.game.isPlayerInGame) return;
+    // ✅ 更新結構內的填充狀態
+    gui.game.structure.updateFilledBlock(block.location);
+        
+});
+     
 /**
  * Randomizes the block permutation when a player places a random block.
  */
 world.afterEvents.playerPlaceBlock.subscribe(event => {
     const player = event.player;
     const blockUsed = event.block.typeId;
+    const block = event.block;
     const gui = INGAME_PLAYERS.get(player.name);
     
     //const fillMax=gui.game.structure.filledBlockLocations.size + gui.game.structure.airBlockLocations.length
     //player.sendMessage(`${gui.game.structure.filledBlockLocations.size}/${fillMax}`)
     
-    if (gui?.game.isPlayerInGame && gui.game.settings.randomizeBlocks && blockUsed === RANDOM_BLOCK_ITEM) {
+    if (!gui?.game.isPlayerInGame) return;
+
+    // ✅ 更新結構內的填充狀態
+    gui.game.structure.updateFilledBlock(block.location);
+
+    // 🎲 隨機方塊替換邏輯
+    if (gui.game.settings.randomizeBlocks && blockUsed === RANDOM_BLOCK_ITEM) {
         try {
             const randomBlockType = getRandomBlock();
-            player.dimension.setBlockType(event.block.location, randomBlockType);
+            player.dimension.setBlockType(block.location, randomBlockType);
         }
         catch (error) {
             player.sendMessage(`§4Failed to place random block: ${error.message}`);
             player.playSound('item.shield.block');
         }
     }
+
 });
 /**
  * Handles script events for TNTCoin
