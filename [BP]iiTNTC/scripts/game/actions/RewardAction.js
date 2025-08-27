@@ -8,8 +8,9 @@ export class REActionForm extends EventActionFormBase {
     show() {
         const chatEvents = this._eventActionForm.actionManager.getAllEvents();
         const form = new ActionForm(this._player, 'Reward Actions');
+     
         chatEvents.forEach((actions, eventKey) => {
-            form.button(`§2§kii§r§e${eventKey} §8Chat§2§kii§r\n§2Actions: [${actions.length}]`, () => {
+            form.button(`§2§kii§r§e${eventKey}:${actions[0].type}§2§kii§r\n§2Actions: [${actions.length}]`, () => {
                 this.showRActionsForm(eventKey, `Actions for ${eventKey} Reward`, actions);
             });
         });
@@ -20,20 +21,31 @@ export class REActionForm extends EventActionFormBase {
     showCreateNewActionForm() {
         new ModalForm(this._player, 'Create New Reward Action')
             .textField('number', 'Enter the number for action', "50", "100")
+            .dropdown('Type', ['Bits', 'Reward'], 0)
             .submitButton('Continue')
             .show(response => {
             const chat = response[0];
+            const typeIndex = response[1]; // 選單的索引
+            const types = ['Bits', 'Reward']; 
+            const chat2 = types[typeIndex];  // 真正的 type 值
+
             this._eventActionForm.showCreateActionForm({
                 eventKey: chat,
-                chat
+                type:chat2
             }, this._actionOptions);
         });
     }
     showRActionsForm(eventKey, formTitle, chatActions) {
         const form = new ActionForm(this._player, formTitle);
-        form.body(`§2§kii§r§fTotal Actions: §d${chatActions.length}§2§kii§r\nUse Point: §e${eventKey}§f.`);
+        console.log(JSON.stringify(chatActions,null,4))
+        
+        let typelist=chatActions.map(action => action.type)
+        form.body(`§2§kii§r§fTotal Actions: §d${chatActions.length}§2§kii§r\nUse Point: §e${eventKey}§f\nType:${typelist}`);
         chatActions.forEach((action, index) => {
             let text = '';
+            if (action.type){
+                text += ` - ${action.type}`
+            }
             if (action.actionType === 'Summon') {
                 text += ` - ${action.summonOptions.entityName.toUpperCase()} x${action.summonOptions?.amount}`;
             }

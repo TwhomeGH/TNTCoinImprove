@@ -81,7 +81,8 @@ export const keyExtractors = {
             return { 
                 key:action.reward,
                 eventKey: action.reward,
-                reward:action.reward
+                reward:action.reward,
+                type:action.type
             };
         }
         return null;

@@ -105,11 +105,34 @@ export class EventActionForm {
         if (action.actionType !== 'Clear Blocks') {
             form.button('Edit', () => this.showActionTypeForm(action, true, index));
         }
+        
+        if (action.type) {
+           form.button('RewardType', () => this.TypeSet(action));
+        }
         form.button('Delete', () => this.showClearActionFromEvent(action, index));
         form.show();
     }
     
-      
+    TypeSet(action){
+        let typeActions=[
+                { id: 1, type: "Bits",description:"依據觀眾花費的小奇點" },
+                { id: 2, type: "Reward",description:"依據頻道忠誠點數兌換" }
+            ]
+            
+        const defaultIndex = typeActions.findIndex(t => t.type === action.type) || 0;
+            
+        new ModalForm(this._player, "Twitch Reward Type")
+            .dropdown("Type:", typeActions.map(action => `${action.type} - ${action.description}`), defaultIndex)
+            .submitButton('Apply')
+            .show(response => {
+            const selectedIndex = response[0];
+            const selectedType = typeActions[selectedIndex].type;
+            // ✅ 更新 action.type
+            action.type = selectedType;
+        
+            console.log(`更新後的 type: ${action.type}`);
+        });
+    }
     RangeSet(action,isEdit,index){
          if (action.actionType !== 'RangeSet')
             return;

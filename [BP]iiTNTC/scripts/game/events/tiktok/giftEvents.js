@@ -67,8 +67,15 @@ export default [
     },
     {
       "reward":100,
+      "type":"Bits",
       "actionType": "Screen Title",
       "screenTitle": "Title"    
+    },
+    {
+      "reward":1002,
+      "type":"Reward",
+      "actionType": "Screen Title",
+      "screenTitle": "333"    
     },
     {
       "text":"22",

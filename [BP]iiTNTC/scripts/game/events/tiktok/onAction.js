@@ -21,7 +21,9 @@ export const ActionTypeDisplay = {
   "Screen Subtitle": "顯示副標題",
   "Fill":"填滿",
   "Clear Blocks":"清除方塊",
-  "Command":"運行特別指令"
+  "Command":"運行特別指令",
+  "Bits":"依據Twitch小奇點",
+  "Reward":"依據Twitch忠誠點數兌換"
 };
 
 export function onAction(game, message={}) {
@@ -329,6 +331,13 @@ export function onAction(game, message={}) {
                 let DisplayAction="運行類型："+ActionTypeDisplay[action.actionType] || `?? ${action.actionType}`
                 if(debug)game.player.sendMessage(DisplayAction);
                 game.player.runCommand(`scoreboard players add "${DisplayAction}" display ${ActionSort} `)
+                
+                ActionSort--
+                
+                DisplayAction=ActionTypeDisplay[action.type] || `?? ${action.type}`
+                if(debug)game.player.sendMessage(DisplayAction);
+                game.player.runCommand(`scoreboard players add "${DisplayAction}" display ${ActionSort} `)
+                
                 });
                 ActionSort--
             }
