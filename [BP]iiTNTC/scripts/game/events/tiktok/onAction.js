@@ -9,6 +9,21 @@ import { taskManager } from "../../../core/TaskManager";
  * @param {TNTCoin} game the TNT Coin game instance.
  * @param {string} message the message sent by TikTokLiveMCBE
  */
+
+
+// 觀眾可讀事件描述
+export const ActionTypeDisplay = {
+  "Summon": "召喚",
+  "WinManger": "設定勝利次數上限 / 當前勝利場數",
+  "RangeSet": "修改範圍",
+  "Play Sound": "播放音效",
+  "Screen Title": "顯示標題",
+  "Screen Subtitle": "顯示副標題",
+  "Fill":"填滿",
+  "Clear Blocks":"清除方塊",
+  "Command":"運行特別指令"
+};
+
 export function onAction(game, message={}) {
      game.player.sendMessage(typeof message)
     
@@ -35,6 +50,8 @@ export function onAction(game, message={}) {
     
     //let rdelay=60
 	giftEvents.forEach((actions, eventKey) => {
+        
+            console.log(JSON.stringify(actions, null, 2),"E?",JSON.stringify(eventKey, null, 2))
             let giftName = '';
             let giftEmoji = '';
             let giftId=0;
@@ -67,7 +84,7 @@ export function onAction(game, message={}) {
            if (actions2 && actions2.length > 0) {
                let ActionSort=0
                actions2.forEach((action3) => {
-                let DisplayAction="運行類型："+action3.actionType
+                let DisplayAction="運行類型："+ActionTypeDisplay[action3.actionType] || `?? ${action3.actionType}`;
                 game.player.runCommand(`scoreboard players add "${DisplayAction}" display ${ActionSort} `)
                 if(debug)game.player.sendMessage(DisplayAction) ;
                 
@@ -112,7 +129,7 @@ export function onAction(game, message={}) {
             
             let ActionSort=0
             actions.forEach(action => {
-                let DisplayAction="運行類型："+action.actionType
+                let DisplayAction="運行類型："+ActionTypeDisplay[action.actionType] || `?? ${action.actionType}`
                 if(debug)game.player.sendMessage(DisplayAction);
                 game.player.runCommand(`scoreboard players add "${DisplayAction}" display ${ActionSort} `)
                 });
@@ -152,7 +169,7 @@ export function onAction(game, message={}) {
             
             let ActionSort=0
             actions.forEach(action => {
-                let DisplayAction="運行類型："+action.actionType
+                let DisplayAction="運行類型："+ActionTypeDisplay[action.actionType] || `?? ${action.actionType}`
                 if(debug)game.player.sendMessage(DisplayAction);
                 game.player.runCommand(`scoreboard players add "${DisplayAction}" display ${ActionSort} `)
                 });
@@ -191,7 +208,7 @@ export function onAction(game, message={}) {
             
             if (followActions.length > 0) {
                 for (const action of followActions){
-                    let DisplayAction="運行類型："+action.actionType
+                    let DisplayAction="運行類型："+ActionTypeDisplay[action.actionType] || `?? ${action.actionType}`
                 
                     if(debug)game.player.sendMessage(DisplayAction);
                     game.player.runCommand(`scoreboard players add "${DisplayAction}" display ${ActionSort} `)
@@ -231,7 +248,7 @@ export function onAction(game, message={}) {
             
             if (joinActions.length > 0) {
                 for (const action of joinActions){
-                    let DisplayAction="運行類型："+action.actionType
+                    let DisplayAction="運行類型："+ActionTypeDisplay[action.actionType] || `?? ${action.actionType}`
                 
                     if(debug)game.player.sendMessage(DisplayAction);
                     game.player.runCommand(`scoreboard players add "${DisplayAction}" display ${ActionSort} `)
@@ -270,7 +287,7 @@ export function onAction(game, message={}) {
             
             if (shareActions.length > 0) {
                 for (const action of shareActions){
-                    let DisplayAction="運行類型："+action.actionType
+                    let DisplayAction="運行類型："+ActionTypeDisplay[action.actionType] || `?? ${action.actionType}`
                 
                     if(debug)game.player.sendMessage(DisplayAction);
                     game.player.runCommand(`scoreboard players add "${DisplayAction}" display ${ActionSort} `)
@@ -282,6 +299,44 @@ export function onAction(game, message={}) {
         
     taskManager.addTimeout(timeoutID, () => cStep2(), rdelay);
     rdelay+=adelay
+    }
+    
+    //Twitch小奇點事件
+    const rewardActions = game.rewardActionManager.getAllEvents();
+    
+    
+    if (rewardActions.size > 0) {
+        rewardActions.forEach((actions, commentKey) => {
+
+            let timeoutID=game.player.name + ":delay:" + commentKey
+            if(debug)game.player.sendMessage("Name:"+timeoutID);
+            
+            let cStep2=()=>{
+    
+            game.player.runCommand("scoreboard objectives remove display")
+            game.player.runCommand("scoreboard objectives add display dummy Display")
+            game.player.runCommand("scoreboard objectives setdisplay sidebar display")
+          
+            
+            
+            let DisplayComment=`Twitch小奇點事件：${commentKey}`
+            game.player.runCommand(`scoreboard players add "${DisplayComment}" display 1 `)
+            
+            if(debug)game.player.sendMessage(DisplayComment);
+            
+            let ActionSort=0
+            actions.forEach(action => {
+                let DisplayAction="運行類型："+ActionTypeDisplay[action.actionType] || `?? ${action.actionType}`
+                if(debug)game.player.sendMessage(DisplayAction);
+                game.player.runCommand(`scoreboard players add "${DisplayAction}" display ${ActionSort} `)
+                });
+                ActionSort--
+            }
+            
+            taskManager.addTimeout(timeoutID, () => cStep2(), rdelay);
+            rdelay+=adelay
+        });
+
     }
     
     

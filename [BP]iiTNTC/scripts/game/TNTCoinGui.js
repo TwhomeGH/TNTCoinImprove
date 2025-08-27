@@ -12,10 +12,59 @@ import { ShareActionForm } from "./actions/ShareAction";
 import { MemberActionForm } from "./actions/MemberAction";
 import { LikeActionForm } from "./actions/LikeAction";
 import { ChatActionForm } from "./actions/ChatAction";
+//給Twitch忠誠點數兌換觸發用的事件（依據花費點數量觸發）
+import { REActionForm } from "./actions/RewardAction";
 /**
  * A map of player names in-game with a TNTCoinGUI instance.
  */
 export const INGAME_PLAYERS = new Map();
+
+
+
+export class EventA {
+        _player;
+        _game;
+    
+        constructor(player, game) {
+            this._player = player;
+            this._game = game
+            this.showActionFormPage1 = this.showActionFormPage1.bind(this);
+            this.showActionFormPage2 = this.showActionFormPage2.bind(this);
+        }
+        // Page 1
+        showActionFormPage1() {
+            
+            const giftAction = new GiftActionForm(this._player, this._game.giftActionManager);
+            const likeAction = new LikeActionForm(this._player, this._game.likeActionManager);
+            const memberAction = new MemberActionForm(this._player, this._game.memberActionManager);
+            const followAction = new FollowActionForm(this._player, this._game.followActionManager);
+            
+           
+    
+            new ActionForm(this._player, 'Event Actions - Page 1')
+            .button('Gift Actions', giftAction.show.bind(giftAction), 'textures/tnt-coin/gui/buttons/gift.png') // 可以跳頁
+            .button('Like Actions', likeAction.show.bind(likeAction), 'textures/tnt-coin/gui/buttons/heart.png')
+            .button('Member Actions', memberAction.show.bind(memberAction), 'textures/tnt-coin/gui/buttons/member.png')
+            .button('Follow Actions', followAction.show.bind(followAction), 'textures/tnt-coin/gui/buttons/follow.png')
+            .button('Next Page', this.showActionFormPage2.bind(this) ) // 可以跳頁
+            .show();
+            }
+
+    // Page 2
+        showActionFormPage2() {
+                const shareAction = new ShareActionForm(this._player, this._game.shareActionManager);
+                const chatAction = new ChatActionForm(this._player, this._game.chatActionManager);
+                const rewardAction = new REActionForm(this._player, this._game.rewardActionManager);
+                
+                new ActionForm(this._player, 'Event Actions - Page 2')
+                .button('Chat Actions', chatAction.show.bind(chatAction), 'textures/tnt-coin/gui/buttons/chat.png')
+                .button('Share Actions', shareAction.show.bind(shareAction), 'textures/tnt-coin/gui/buttons/share.png')
+                .button('Reward Actions', rewardAction.show.bind(rewardAction), 'textures/tnt-coin/gui/buttons/reward.png')
+                .button('Back', this.showActionFormPage1.bind(this) ) // 返回上一頁
+                .show();
+        }
+
+   }
 /**
  * Represents a TNTCoin game instance with a GUI.
  */
@@ -185,7 +234,11 @@ export class TNTCoinGUI {
     /**
     * Shows the in-game form to the player.
     */
+
+    
+    
     showInGameForm() {
+        const EGUI = new EventA(this._player, this._game);
         const wins = this._game.winManager.getCurrentWins();
         const maxWin = this._game.winManager.getMaxWins();
         let maxfillblock=this._structure.airBlockLocations.length + this._structure.filledBlockLocations.size
@@ -206,29 +259,17 @@ export class TNTCoinGUI {
             .button('Teleport', () => this._game.teleportPlayer(this._structure.structureHeight), 'textures/tnt-coin/gui/buttons/ender_pearl.png')
             .button('Timer', this.showTimerForm.bind(this), 'textures/tnt-coin/gui/buttons/clock.png')
             .button('Gift Goal', this.showGiftGoalForm.bind(this), 'textures/tnt-coin/gui/buttons/goals.png')
-            .button('§2§kii§r§8Event Actions§2§kii§r', this.showEventActionsForm.bind(this), 'textures/tnt-coin/gui/buttons/events.png')
+            .button('§2§kii§r§8Event Actions§2§kii§r', EGUI.showActionFormPage1.bind(this), 'textures/tnt-coin/gui/buttons/events.png')
             .button('§2§kii§r§8Events§2§kii§r', this.showEventsForm.bind(this), 'textures/tnt-coin/gui/buttons/bell.png')
             .button('Settings', this.showInGameSettingsForm.bind(this), 'textures/tnt-coin/gui/buttons/settings.png')
             .button('Reload', this._game.loadGame.bind(this._game), 'textures/tnt-coin/gui/buttons/reload.png')
             .button('Quit', this._game.quitGame.bind(this._game), 'textures/tnt-coin/gui/buttons/left.png')
             .show();
     }
-    showEventActionsForm() {
-        const giftAction = new GiftActionForm(this._player, this._game.giftActionManager);
-        const followAction = new FollowActionForm(this._player, this._game.followActionManager);
-        const shareAction = new ShareActionForm(this._player, this._game.shareActionManager);
-        const memberAction = new MemberActionForm(this._player, this._game.memberActionManager);
-        const likeAction = new LikeActionForm(this._player, this._game.likeActionManager);
-        const chatAction = new ChatActionForm(this._player, this._game.chatActionManager);
-        new ActionForm(this._player, 'Event Actions')
-            .button('Gift Actions', giftAction.show.bind(giftAction), 'textures/tnt-coin/gui/buttons/gift.png')
-            .button('Like Actions', likeAction.show.bind(likeAction), 'textures/tnt-coin/gui/buttons/heart.png')
-            .button('Member Actions', memberAction.show.bind(memberAction), 'textures/tnt-coin/gui/buttons/member.png')
-            .button('Follow Actions', followAction.show.bind(followAction), 'textures/tnt-coin/gui/buttons/follow.png')
-            .button('Chat Actions', chatAction.show.bind(chatAction), 'textures/tnt-coin/gui/buttons/chat.png')
-            .button('Share Actions', shareAction.show.bind(shareAction), 'textures/tnt-coin/gui/buttons/share.png')
-            .show();
-    }
+    
+        
+        
+   
     /**
      * Shows the form to set up or modify the gift goal.
      */
@@ -309,7 +350,8 @@ export class TNTCoinGUI {
             .textField("number", "[§eFILL§r] Delay in Ticks:", "Enter the delay in ticks to fill blocks", oldSettings.fillSettings.tickInterval.toString(), (updatedValue) => newSettings.fillSettings.tickInterval = updatedValue)
             .textField("number", "[§eFILL§r] Amount of Blocks per tick:", 'Enter the amount of blocks to fill per tick', oldSettings.fillSettings.blocksPerTick.toString(), (updatedValue) => newSettings.fillSettings.blocksPerTick = updatedValue)
             .textField("number", "[§eFILL§r] 方塊容錯:", '允許方塊容錯數', this._game.structure.allowAmount.toString(), (updatedValue) => this._game.structure.allowAmount = updatedValue)
-           
+            .textField("number", "[§eDetectTick§r] 框架方塊保護檢測間隔:", 'Tick延遲', this._game.structure.detectTick.toString(), (updatedValue) => this._game.structure.detectTick = updatedValue)
+        
             .submitButton('§2Update Settings§r')
             .show(() => {
             const isSettingsChanged = JSON.stringify(oldSettings) !== JSON.stringify(newSettings);

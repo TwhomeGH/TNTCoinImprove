@@ -27,6 +27,11 @@ export function executeAction(game, action) {
                 game.structure.fillStop()
                 game.player.sendMessage("[Fill]Stop Fill Block Work")
             }else{
+             game.structure.fillSettings = {
+                tickInterval : action.fillOptions.delay,
+                blocksPerTick : action.fillOptions.amount
+                }
+             game.player.sendMessage(`填充速度${action.fillOptions.delay}T 數量：${action.fillOptions.amount}`)
              game.structure.fill();
              game.player.sendMessage("[Fill]Start Fill Block Work")
             }

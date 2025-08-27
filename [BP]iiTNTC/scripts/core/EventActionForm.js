@@ -310,8 +310,8 @@ export class EventActionForm {
             return;
             
         const fillOptions = action.fillOptions || {
-            delay:20,
-            amount:20,
+            delay:1,
+            amount:50,
             fillStop:false
         };
         let formTitle = `Fill Action: ${isEdit ? 'Edit' : 'Create'} Action`;

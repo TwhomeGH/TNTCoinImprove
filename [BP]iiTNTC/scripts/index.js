@@ -30,32 +30,60 @@ world.beforeEvents.playerBreakBlock.subscribe(event => {
     const block = event.block;
     const blockLocation = JSON.stringify(floorVector3(block.location));
 
-    world.getAllPlayers().forEach(player => {
-        const gui = INGAME_PLAYERS.get(player.name);
-          
-        if (gui?.game.isPlayerInGame && gui.game.structure.protectedBlockLocations.has(blockLocation)) {
-            event.cancel = true;
-            system.run(() => player.playSound("item.shield.block"));
-        }
-    });
+
+    const player = event.player;
+    const gui = INGAME_PLAYERS.get(player.name);
+    if (gui?.game.isPlayerInGame && gui.game.structure.protectedBlockLocations.has(blockLocation)) {
+        event.cancel = true;
+        system.run( ()=>{
+        player.playSound("note.bell");
+        });
+    }
 });
 /**
  * Prevents explosions from destroying protected blocks.
  */
 world.beforeEvents.explosion.subscribe(event => {
     const impactedBlocks = event.getImpactedBlocks();
-    const allProtectedLocations = new Set();
-    world.getAllPlayers().forEach(player => {
-        const gui = INGAME_PLAYERS.get(player.name);
-        if (gui?.game.isPlayerInGame) {
-            gui.game.structure.protectedBlockLocations.forEach(location => {
-                allProtectedLocations.add(location);
-            });
+    if (impactedBlocks.length === 0) return;
+
+    // 計算爆炸中心（用第一個方塊作爆心）
+    const center = impactedBlocks[0].location;
+
+    // 找最近玩家
+    const players = world.getAllPlayers();
+    if (players.length === 0) return;
+
+    let nearestPlayer = players[0];
+    let nearestDist = Infinity;
+
+    for (const p of players) {
+        const dx = p.location.x - center.x;
+        const dy = p.location.y - center.y;
+        const dz = p.location.z - center.z;
+        const distSq = dx*dx + dy*dy + dz*dz;
+        if (distSq < nearestDist) {
+            nearestDist = distSq;
+            nearestPlayer = p;
         }
+    }
+
+    // 拿最近玩家的保護方塊
+    const gui = INGAME_PLAYERS.get(nearestPlayer.name);
+    if (!gui?.game.isPlayerInGame) return;
+
+    const nearestProtected = gui.game.structure.protectedBlockLocations;
+    
+    const filteredBlocks = impactedBlocks.filter(block => {
+        const key = JSON.stringify(floorVector3(block.location));
+        return !nearestProtected.has(key);
     });
-    event.setImpactedBlocks(impactedBlocks.filter((block) => {
-        return !allProtectedLocations.has(JSON.stringify(floorVector3(block.location)));
-    }));
+
+
+    // 過濾爆炸方塊，只保護最近玩家的結構方塊
+    // 更新事件的方塊列表
+    event.setImpactedBlocks(filteredBlocks);
+
 });
 /**
  * Loads the game state for players who are in a game when they spawn.
@@ -77,6 +105,45 @@ world.afterEvents.playerSpawn.subscribe(async (event) => {
     }
 });
 
+
+//爆炸後事件
+world.afterEvents.explosion.subscribe(event => {
+    const impactedBlocks = event.getImpactedBlocks();
+    if (impactedBlocks.length === 0) return;
+
+    // ✅ 直接取第一個 block 當爆炸中心
+    const center = impactedBlocks[0].location;
+
+    // ✅ 找最近的玩家
+    const players = world.getPlayers();
+    if (players.length === 0) return;
+
+    let nearestPlayer = players[0];
+    let nearestDist = Infinity;
+
+    for (const p of players) {
+        const dx = p.location.x - center.x;
+        const dy = p.location.y - center.y;
+        const dz = p.location.z - center.z;
+        const distSq = dx * dx + dy * dy + dz * dz;
+        if (distSq < nearestDist) {
+            nearestDist = distSq;
+            nearestPlayer = p;
+        }
+    }
+
+    const gui = INGAME_PLAYERS.get(nearestPlayer.name);
+    if (!gui?.game.isPlayerInGame) return;
+    
+    //nearestPlayer.sendMessage(nearestPlayer.name)
+    
+    const structure = gui.game.structure;
+    const impactedKeys = impactedBlocks.map(b => JSON.stringify(floorVector3(b.location)) );
+
+    // 批量更新 filledBlockLocations
+    structure.updateFilledBlock(impactedBlocks)
+    
+});
 
 //世界方塊破壞事件更新
 
@@ -117,8 +184,10 @@ world.afterEvents.playerPlaceBlock.subscribe(event => {
             player.dimension.setBlockType(block.location, randomBlockType);
         }
         catch (error) {
+            system.run( ()=>{
             player.sendMessage(`§4Failed to place random block: ${error.message}`);
-            player.playSound('item.shield.block');
+            player.playSound('note.bell');
+            });
         }
     }
 

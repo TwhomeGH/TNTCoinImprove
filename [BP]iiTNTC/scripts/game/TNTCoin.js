@@ -37,6 +37,7 @@ export class TNTCoin {
     memberActionManager;
     likeActionManager;
     chatActionManager;
+    rewardActionManager;
     _isPlayerInGame = false;
     _gameKey;
     _taskAutoSaveId;
@@ -44,7 +45,7 @@ export class TNTCoin {
     _taskFillCheckId;
     _useBarriers = false;
     _doesCameraRotate = true;
-    _randomizeBlocks = true;
+    _randomizeBlocks = false;
     _summonEntityFormSettings = {
         entityName: 'tnt_minecart',
         locationType: 'random',
@@ -78,6 +79,7 @@ export class TNTCoin {
         this.memberActionManager = new EventActionManager(player, 'MemberActions');
         this.likeActionManager = new EventActionManager(player, 'LikeActions');
         this.chatActionManager = new EventActionManager(player, 'ChatActions');
+        this.rewardActionManager = new EventActionManager(player, 'RewardActions');
         this._taskAutoSaveId = `${player.name}:autosave`;
         this._taskFillCheckId = `${player.name}:fillcheck`;
         this._taskCameraId = `${player.name}:camera`;

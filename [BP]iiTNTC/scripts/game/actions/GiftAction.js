@@ -4,7 +4,7 @@ import { EventActionForm } from "../../core/EventActionForm";
 import { EventActionFormBase } from "./EventActionFormBase";
 export class GiftActionForm extends EventActionFormBase {
     constructor(player, giftActionManager) {
-        super(player, new EventActionForm(player, giftActionManager));
+        super(player, new EventActionForm(player,giftActionManager));
     }
     show() {
         const giftEvents = this._eventActionForm.actionManager.getAllEvents();

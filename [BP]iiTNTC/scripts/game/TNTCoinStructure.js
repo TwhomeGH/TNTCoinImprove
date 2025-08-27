@@ -20,6 +20,8 @@ export class TNTCoinStructure {
     _fillTickInterval = 1;
     _fillBlocksPerTick = 50;
     _fillAllowAirAmount = 0;
+    _detectTick=2;
+    
     _isFilling = false;
     _protectedBlockLocations = new Set();
     _airBlockLocations = new Set();
@@ -92,10 +94,18 @@ export class TNTCoinStructure {
     set allowAmount(allAmount){
         this._fillAllowAirAmount = allAmount;
     }
-    set fillSettings({ blockName, tickInterval, blocksPerTick }) {
-        this._fillBlockName = blockName;
-        this._fillTickInterval = tickInterval;
-        this._fillBlocksPerTick = blocksPerTick;
+    
+    get detectTick(){
+        return this._detectTick;
+    }
+    set detectTick(tick){
+        this._detectTick = tick;
+    }
+    
+    set fillSettings({ tickInterval, blocksPerTick, blockName }) {
+        if (blockName !== undefined) this._fillBlockName = blockName;
+        if (tickInterval !== undefined) this._fillTickInterval = tickInterval;
+        if (blocksPerTick !== undefined) this._fillBlocksPerTick = blocksPerTick;
     }
     /**
      * Gets a value indicating whether the structure is currently being filled.
@@ -226,7 +236,7 @@ export class TNTCoinStructure {
     * @returns {Promise<void>} a promise that resolves when all blocks have been generated.
     */
     async generateProtectedBlocks(blocks) {
-            const chunkSize = 1000;
+            const chunkSize = 200;
         
             // 先按 blockName 分組
             const blocksByName = {};
@@ -259,7 +269,7 @@ export class TNTCoinStructure {
     */
 
 
-    async iterateProtectedBlockLocations(startingPosition, handleBlock, batchSize = 1000) {
+    async iterateProtectedBlockLocations(startingPosition, handleBlock, batchSize = 200) {
         this._airBlockLocations.clear();
         const { width, height, centerLocation, blockOptions } = this.structureProperties;
         const { baseBlockName, sideBlockName, floorBlockName } = blockOptions;
@@ -302,7 +312,7 @@ export class TNTCoinStructure {
                 }
             }
             // 等待一個 tick，讓 event loop 先處理其他事情，避免 Watchdog
-            await new Promise(resolve => system.runTimeout(resolve, 1));
+            await new Promise(resolve => system.runTimeout(resolve, this._detectTick));
         }
     }
     /**
@@ -442,7 +452,11 @@ export class TNTCoinStructure {
 
     const loc = floorVector3(location);
     const key = JSON.stringify(loc);
-
+    
+    
+    // ✅ 檢查是不是結構範圍內需要處理的位置
+    if (!this._airBlockLocations.has(key)) return;
+    
     if (!isBlockAir(this._dimension, loc)) {
         this._filledBlockLocations.add(key);
     } else {
