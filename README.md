@@ -106,6 +106,14 @@ StructureConfig 該選項 讓你能夠隨時調整結構的大小
 
 根據忠誠點數觸發或依據小奇點
 
+如果你設置了Twitch事件 你可以在對應每個子事件設定
+
+- 根據忠誠點數觸發
+- 依據小奇點
+
+關於服務端Twitch擴展插件 請參考
+[TwitchAuth](https://github.com/TwhomeGH/TwitchAuth)
+
 ### importAction 腳本事件 : 根據設置好的事件配置導入
 
 `/scriptevent importAction`
