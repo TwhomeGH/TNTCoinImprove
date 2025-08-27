@@ -50,7 +50,7 @@ StructureConfig 該選項 讓你能夠隨時調整結構的大小
 | Amount | 填充數量 | Number |
 | FillStop | 是否阻止運行中的填充事件 | boolean |
 
-> 當前還未配置Delay與Amount的事件修改
+> 當前已配置Delay與Amount的事件修改
 
 
 ![擴建設置](Docs/IMG_1789.jpeg "RangeSet")
