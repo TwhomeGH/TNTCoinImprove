@@ -90,3 +90,173 @@ StructureConfig 該選項 讓你能夠隨時調整結構的大小
 | rdealy | 起始運行等待間隔（20t = 1s) | Number | 60 |
 | adealy | 下一組事件展示等待間隔（20t = 1s) | Number | 60 |
 | debug | 調試用訊息 | boolean | false |
+
+
+![Twitch忠誠點數/小奇點事件](Docs/IMG_2090.jpeg "TwitchCheer")
+
+# 添加了對Twitch對接用的事件入口
+
+這主要是對忠誠點數兌換某個指定額度觸發
+
+本質上也能用在針對指定數量的小奇點
+
+
+### importAction 腳本事件 : 根據設置好的事件配置導入
+
+`/scriptevent importAction`
+
+配置文件位置 `BP[iiTNTC]/scripts/game/tiktok/giftEvents.js`
+
+
+# 說明
+
+  -	此配置文件使用 JavaScript 編寫，主要用於簡化 TikTok 禮物事件的配置。
+	
+ -	透過 importAction 指令，系統會自動讀取該文件並導入對應的事件動作。
+
+
+# giftEvents.js 配置說明
+
+這個檔案用 **JavaScript** 編寫，用於設定 TikTok 禮物事件觸發的對應行為。
+
+它是一個 **陣列**，每個元素都是一個事件配置對象（object）。
+
+---
+
+## 1 - 基本結構
+
+```js
+{
+  "giftName": "禮物名稱",
+  "actionType": "動作類型",
+  "其他參數": "動作相關設定"
+}
+```
+
+
+-	giftName：觸發事件的禮物名稱，例如 "Rosa" 或 "Heart Me"。
+
+- 其值需對應 `BP[iiTNTC]/scripts/lang/tiktokGifts.js` 中存在的禮物名稱列表。
+- 系統會依據這些名稱來識別不同禮物事件，請勿隨意填寫不存在的名稱。
+
+
+### actionType：觸發時要執行的動作，例如：
+
+ -	"Summon" → 生成實體（entity）
+ -	"WinManger" → 改變勝利管理相關數值	
+ - "RangeSet" → 修改範圍
+ - "Play Sound" → 播放音效
+ - "Screen Title" → 在畫面顯示文字標題
+ - "Clear Blocks" → 清除方塊
+ - "Fill" → 填充方塊
+
+## 2 - 動作參數範例
+
+### Summon
+
+```js
+{
+  "actionType": "Summon",
+  "entity": "tnt",
+  "amount": 120,
+  "location": "random",
+  "onTop": true,
+  "batch": [10,10],
+  "sound": [true, "kururin"]
+}
+```
+
+- 說明：生成 120 個 TNT，位置隨機，分兩批（10,10），同時播放 kururin 音效
+
+### WinManger
+
+```js
+{
+  "actionType": "WinManger",
+  "win": 3,
+  "changeMax": false
+}
+```
+
+- 說明：設定勝利數值為 3，不修改最大值。
+
+
+### Screen Title
+
+```js
+{
+  "actionType": "Screen Title",
+  "screenTitle": "Title",
+  "follow": true
+}
+```
+
+- 說明：在畫面上顯示標題 "Title"，條件可依據 follow、member、share、like、reward 等欄位觸發
+
+  ### - like 與 reward 是數值觸發條件，不是布林值。
+
+  ```js
+    {
+     "actionType": "Screen Title",
+     "screenTitle": "Title",
+     "like": 150
+    }
+  ```
+
+  - 例如 like: 150 → 當該事件收到 150 個 like 時觸發。
+  - 例如 reward: 100 → 當該事件收到 100 的 Twitch小奇點或忠誠點花費值達到指定值時觸發。
+
+
+### Fill
+
+ ```js
+ {
+  "actionType": "Fill",
+  "text": "23",
+  "delay": 1,
+  "amount": 150
+ }
+```
+
+- 說明：以每1刻 填充150個方塊的速度來進行填充
+- 可以設置 delay（延遲刻數）、amount（方塊數量）
+
+### Clear Blocks
+
+```js
+{
+  "actionType": "Clear Blocks",
+  "text": "22"
+}
+```
+
+- 不需要也不能設置 delay 或 amount
+ 
+
+## 3 - 事件分類邏輯
+
+在 giftEvents.js 中，每個事件配置會依據以下條件欄位分類觸發
+
+```js
+{
+  "text":"Ok"
+}
+```
+
+| 條件欄位 | 型別 | 說明 |
+| --- | -- | -- |
+| like | Number | 當收到指定數量的點讚時觸發，例如 like: 150 |
+| reward | Number | 當收到指定數量的小奇點或忠誠點兌換時觸發，例如 reward: 150 |
+| giftName | String | 當收到指定禮物時觸發，例如 giftName: Rosa |
+| text | String | 當收到特定文字指令時觸發，例如 text: "22" |
+| follow | boolean | 追隨事件 固定為 true，僅作為轉譯器分類事件的標記，不作為可變條件 |
+| member | boolean | 進入直播間事件 固定為 true，僅作為轉譯器分類事件的標記，不作為可變條件 |
+| share | boolean | 分享直播間事件 固定為 true，僅作為轉譯器分類事件的標記，不作為可變條件 |
+
+
+
+
+
+
+
+
